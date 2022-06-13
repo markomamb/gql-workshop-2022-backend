@@ -1,5 +1,7 @@
-const { ApolloServer, gql } = require('apollo-server')
+const { ApolloServer } = require('apollo-server')
 const { v1: uuid } = require('uuid')
+const { context } = require('./context')
+const { typeDefs } = require('./typeDefs')
 
 let authors = [
   {
@@ -79,35 +81,6 @@ let books = [
   },
 ]
 
-const typeDefs = gql`
-  type Book {
-    title: String!
-    published: Int!
-    author: String!
-    id: ID!
-    genres: [String]!
-  }
-
-  type Author {
-    name: String!
-    id: ID!
-    born: Int
-    bookCount: Int!
-  }
-
-  type Query {
-    bookCount: Int!
-    authorCount: Int!
-    allAuthors: [Author]
-    allBooks(author: String, genre: String): [Book]
-  }
-
-  type Mutation {
-    addBook(title: String!, author: String!, published: Int, genres: [String!]): Book!
-    editAuthor(name: String!, setBornTo: Int): Author
-  }
-`
-
 const resolvers = {
   Query: {
     bookCount: () => {
@@ -116,7 +89,8 @@ const resolvers = {
     authorCount: () => {
       return authors.length
     },
-    allBooks: (root, args) => {
+    allBooks: (root, args, context, info) => {
+      console.log(context)
       const author = args.author
       const genre = args.genre
 
@@ -149,7 +123,7 @@ const resolvers = {
     },
     editAuthor: (root, args) => {
       const authorIndex = authors.findIndex(a => a.name === args.name)
-      console.log(authorIndex)
+
       if (authorIndex >= 0) {
         const editedAuthor = { ...authors[authorIndex], born: args.setBornTo }
         authors[authorIndex] = editedAuthor
@@ -169,6 +143,7 @@ const resolvers = {
 const server = new ApolloServer({
   typeDefs,
   resolvers,
+  context
 })
 
 server.listen().then(({ url }) => {
