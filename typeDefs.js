@@ -23,8 +23,15 @@ module.exports.typeDefs = gql`
     allBooks(author: String, genre: String): [Book]
   }
 
+  input CreateBookInput {
+    title: String!
+    author: String!
+    published: Int!
+    genres: [String!]!
+  }
+
   type Mutation {
-    addBook(title: String!, author: String!, published: Int, genres: [String!]): Book!
-    editAuthor(name: String!, setBornTo: Int): Author!
+    addBook(input: CreateBookInput!): Book!
+    editAuthor(name: String!, setBornTo: Int!): Author!
   }
 `
