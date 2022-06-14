@@ -1,4 +1,4 @@
-const { ApolloServer } = require('apollo-server')
+const { ApolloServer, UserInputError } = require('apollo-server')
 const { v1: uuid } = require('uuid')
 const { context } = require('./context')
 const { typeDefs } = require('./typeDefs')
@@ -6,6 +6,7 @@ const { typeDefs } = require('./typeDefs')
 const mongoose = require('mongoose')
 const Author = require('./models/author')
 const Book = require('./models/book')
+const User = require('./models/user')
 const { authors, books } = require('./data')
 
 const MONGODB_URI = 'mongodb://localhost:27017/fullstackopen'
@@ -44,11 +45,22 @@ const resolvers = {
     },
     allAuthors: async () => {
       return await Author.find({})
+    },
+    me: async (root, args, context) => {
+      return {}
     }
   },
   Mutation: {
     addBook: async (root, args) => {
       const { title, author, published, genres } = args.input
+
+      if (title.length < 2) {
+        throw new UserInputError('Book title too short.')
+      }
+
+      if (author.length < 4) {
+        throw new UserInputError('Author name too short.')
+      }
 
       const authorFound = await Author.findOne({ name: author })
 
@@ -72,12 +84,26 @@ const resolvers = {
     editAuthor: async (root, args) => {
       try {
         const res = await Author.updateOne({ name: args.name }, { born: args.setBornTo })
-
+        // TODO: oikean id:n palautus
         return { name: args.name, born: args.setBornTo, id: '' }
       } catch (ex) {
         console.error('Update failed.')
         return null
       }
+    },
+    createUser: async (root, args) => {
+      const { username, favoriteGenre } = args
+
+      if (username.length < 4) {
+        throw new UserInputError('Username too short.')
+      }
+      const user = new User({ username, favoriteGenre })
+      const res = await user.save()
+
+      return user
+    },
+    login: async (root, args) => {
+
     }
   },
   Author: {

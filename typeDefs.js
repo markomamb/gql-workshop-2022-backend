@@ -1,6 +1,16 @@
 const { gql } = require('apollo-server')
 
 module.exports.typeDefs = gql`
+  type User {
+    username: String!
+    favoriteGenre: String!
+    id: ID!
+  }
+
+  type Token {
+    value: String!
+  }
+
   type Book {
     title: String!
     published: Int!
@@ -21,6 +31,7 @@ module.exports.typeDefs = gql`
     authorCount: Int!
     allAuthors: [Author]
     allBooks(author: String, genre: String): [Book]
+    me: User
   }
 
   input CreateBookInput {
@@ -33,5 +44,13 @@ module.exports.typeDefs = gql`
   type Mutation {
     addBook(input: CreateBookInput!): Book!
     editAuthor(name: String!, setBornTo: Int!): Author!
+    createUser(
+      username: String!
+      favoriteGenre: String!
+    ): User
+    login(
+      username: String!
+      password: String!
+    ): Token
   }
 `
