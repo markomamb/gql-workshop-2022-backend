@@ -126,5 +126,5 @@ server.listen().then(({ url }) => {
 })
 
 const includeAuthorName = b => {
-  return { ...b._doc, author: b._doc.author.name }
+  return { ...b._doc, author: b._doc.author.name, id: b._doc._id }
 }
