@@ -7,7 +7,8 @@ const mongoose = require('mongoose')
 const Author = require('./models/author')
 const Book = require('./models/book')
 const User = require('./models/user')
-const { authors, books } = require('./data')
+const { JWT_SECRET } = require('./config')
+const jwt = require('jsonwebtoken')
 
 const MONGODB_URI = 'mongodb://localhost:27017/fullstackopen'
 
@@ -47,7 +48,7 @@ const resolvers = {
       return await Author.find({})
     },
     me: async (root, args, context) => {
-      return {}
+      return context.currentUser
     }
   },
   Mutation: {
@@ -103,7 +104,18 @@ const resolvers = {
       return user
     },
     login: async (root, args) => {
+      const user = await User.findOne({ username: args.username })
 
+      if (!user || args.password !== 'password') {
+        throw new UserInputError("wrong credentials")
+      }
+
+      const userForToken = {
+        username: user.username,
+        id: user._id,
+      }
+
+      return { value: jwt.sign(userForToken, JWT_SECRET) }
     }
   },
   Author: {
