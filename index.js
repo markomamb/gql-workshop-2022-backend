@@ -69,16 +69,15 @@ const resolvers = {
 
       return newBook
     },
-    editAuthor: (root, args) => {
-      const authorIndex = authors.findIndex(a => a.name === args.name)
+    editAuthor: async (root, args) => {
+      try {
+        const res = await Author.updateOne({ name: args.name }, { born: args.setBornTo })
 
-      if (authorIndex >= 0) {
-        const editedAuthor = { ...authors[authorIndex], born: args.setBornTo }
-        authors[authorIndex] = editedAuthor
-
-        return editedAuthor
+        return { name: args.name, born: args.setBornTo, id: '' }
+      } catch (ex) {
+        console.error('Update failed.')
+        return null
       }
-      return null
     }
   },
   Author: {
