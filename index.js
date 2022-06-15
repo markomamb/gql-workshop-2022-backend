@@ -1,4 +1,4 @@
-const { ApolloServer, UserInputError } = require('apollo-server')
+const { ApolloServer, UserInputError, AuthenticationError } = require('apollo-server')
 const { v1: uuid } = require('uuid')
 const { context } = require('./context')
 const { typeDefs } = require('./typeDefs')
@@ -33,7 +33,6 @@ const resolvers = {
       return Author.collection.countDocuments()
     },
     allBooks: async (root, args, context, info) => {
-      console.log(context)
       const author = args.author
       const genre = args.genre
 
@@ -48,11 +47,24 @@ const resolvers = {
       return await Author.find({})
     },
     me: async (root, args, context) => {
+      if (!context.currentUser) {
+        throw new AuthenticationError('not authenticated')
+      }
       return context.currentUser
+    },
+    genres: async () => {
+      const books = await Book.find({})
+      const genres = books.map(b => b._doc).flatMap(b => b.genres)
+
+      return new Set(genres)
     }
   },
   Mutation: {
-    addBook: async (root, args) => {
+    addBook: async (root, args, context) => {
+      if (!context.currentUser) {
+        throw new AuthenticationError('not authenticated')
+      }
+
       const { title, author, published, genres } = args.input
 
       if (title.length < 2) {

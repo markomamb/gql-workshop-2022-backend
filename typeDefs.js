@@ -32,6 +32,7 @@ module.exports.typeDefs = gql`
     allAuthors: [Author]
     allBooks(author: String, genre: String): [Book]
     me: User
+    genres: [String!]!
   }
 
   input CreateBookInput {
