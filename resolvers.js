@@ -5,6 +5,7 @@ const { JWT_SECRET } = require('./config')
 const jwt = require('jsonwebtoken')
 const { PubSub } = require('graphql-subscriptions')
 const pubsub = new PubSub()
+const { UserInputError } = require('apollo-server')
 
 module.exports.resolvers = {
   Query: {
@@ -22,7 +23,7 @@ module.exports.resolvers = {
       const booksWithAuthorName = books.map(includeAuthorName)
 
       return booksWithAuthorName
-        .filter(book => author !== undefined ? book.author.name === author : true)
+        .filter(book => author !== undefined ? book.author === author : true)
         .filter(book => genre !== undefined ? book.genres.includes(genre) : true)
     },
     allAuthors: async () => {
@@ -73,9 +74,11 @@ module.exports.resolvers = {
       }
 
       await newBook.save()
+      const book = await Book.findById(newBook._id).populate('author')
+      const bookWithAuthorName = includeAuthorName(book)
 
-      pubsub.publish('BOOK_ADDED', { bookAdded: newBook })
-      return newBook
+      pubsub.publish('BOOK_ADDED', { bookAdded: bookWithAuthorName })
+      return bookWithAuthorName
     },
     editAuthor: async (root, args) => {
       try {
