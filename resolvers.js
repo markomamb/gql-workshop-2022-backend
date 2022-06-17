@@ -3,6 +3,8 @@ const Book = require('./models/book')
 const User = require('./models/user')
 const { JWT_SECRET } = require('./config')
 const jwt = require('jsonwebtoken')
+const { PubSub } = require('graphql-subscriptions')
+const pubsub = new PubSub()
 
 module.exports.resolvers = {
   Query: {
@@ -72,6 +74,7 @@ module.exports.resolvers = {
 
       await newBook.save()
 
+      pubsub.publish('BOOK_ADDED', { bookAdded: newBook })
       return newBook
     },
     editAuthor: async (root, args) => {
@@ -115,6 +118,11 @@ module.exports.resolvers = {
       const books = await Book.find({}).populate('author')
       const booksWithAuthorName = books.map(includeAuthorName)
       return booksWithAuthorName.filter(book => book.author === root.name).length
+    }
+  },
+  Subscription: {
+    bookAdded: {
+      subscribe: () => pubsub.asyncIterator(['BOOK_ADDED'])
     }
   }
 }
