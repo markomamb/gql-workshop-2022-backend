@@ -1,3 +1,5 @@
+require('dotenv').config()
+
 const { ApolloServer } = require('apollo-server-express')
 const { ApolloServerPluginDrainHttpServer } = require('apollo-server-core')
 const { context } = require('./context')
@@ -12,7 +14,7 @@ const { SubscriptionServer } = require('subscriptions-transport-ws')
 const mongoose = require('mongoose')
 const { resolvers } = require('./resolvers')
 
-const MONGODB_URI = 'mongodb://localhost:27017/fullstackopen'
+const MONGODB_URI = process.env.MONGODB_URI
 
 console.log('connecting to', MONGODB_URI)
 
